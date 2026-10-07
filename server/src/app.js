@@ -27,8 +27,27 @@ const app = express();
 app.use(helmet());
 
 // CORS configuration (Section 85: never origin: * in production)
+const allowedOrigins = [
+  env.FRONTEND_URL?.replace(/\/+$/, ''),
+  'https://ai-trustguard-in.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:3000',
+].filter(Boolean);
+
 app.use(cors({
-  origin: env.NODE_ENV === 'production' ? env.FRONTEND_URL : true,
+  origin: (origin, callback) => {
+    if (!origin || env.NODE_ENV !== 'production') {
+      return callback(null, true);
+    }
+    const cleanOrigin = origin.replace(/\/+$/, '');
+    if (
+      allowedOrigins.includes(cleanOrigin) ||
+      cleanOrigin.endsWith('.vercel.app')
+    ) {
+      return callback(null, true);
+    }
+    return callback(new Error(`CORS origin not allowed: ${origin}`));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -43,7 +62,7 @@ app.use(requestLogger);
 app.use(standardLimiter);
 
 // Health check (Section 79)
-app.get('/api/health', (req, res) => {
+app.get(['/api/health', '/health'], (req, res) => {
   res.json({
     status: 'ok',
     service: 'AI TrustGuard',
@@ -52,20 +71,27 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Mount All API Routes (Section 69)
-app.use('/api/auth', authRoutes);
-app.use('/api/ai-systems', aiSystemRoutes);
-app.use('/api/evaluations', evaluationRoutes);
-app.use('/api/tests', testRoutes);
-app.use('/api/vulnerabilities', vulnerabilityRoutes);
-app.use('/api/firewall', firewallRoutes);
-app.use('/api/gateway', gatewayRoutes);
-app.use('/api/incidents', incidentRoutes);
-app.use('/api/monitoring', monitoringRoutes);
-app.use('/api/playground', playgroundRoutes);
-app.use('/api/reports', reportRoutes);
-app.use('/api/feedback', feedbackRoutes);
-app.use('/api/dashboard', dashboardRoutes);
+// Mount All API Routes (Supports both /api prefix and root prefix for resilience)
+const routeModules = [
+  ['/auth', authRoutes],
+  ['/ai-systems', aiSystemRoutes],
+  ['/evaluations', evaluationRoutes],
+  ['/tests', testRoutes],
+  ['/vulnerabilities', vulnerabilityRoutes],
+  ['/firewall', firewallRoutes],
+  ['/gateway', gatewayRoutes],
+  ['/incidents', incidentRoutes],
+  ['/monitoring', monitoringRoutes],
+  ['/playground', playgroundRoutes],
+  ['/reports', reportRoutes],
+  ['/feedback', feedbackRoutes],
+  ['/dashboard', dashboardRoutes],
+];
+
+for (const [routePath, routeHandler] of routeModules) {
+  app.use(`/api${routePath}`, routeHandler);
+  app.use(routePath, routeHandler);
+}
 
 // Centralized error handler
 app.use(errorHandler);

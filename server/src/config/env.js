@@ -27,6 +27,7 @@ const envSchema = z.object({
   JWT_EXPIRES_IN: z.string().default('7d'),
   GEMINI_API_KEY: z.string().optional(),
   FRONTEND_URL: z.string().default('http://localhost:5173'),
+  DEMO_PASSWORD: z.string().default('Demo123!@#'),
 });
 
 const parsed = envSchema.safeParse(process.env);

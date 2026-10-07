@@ -9,7 +9,10 @@ VALUES (
     'demo@trustguard.ai',
     '$2a$10$dYDE6EaTAckIHkar69UFf.fX2o5UuLgTcbBjXn4kC5g8oPu.War/u',
     'admin'
-) ON CONFLICT (email) DO NOTHING;
+) ON CONFLICT (email) DO UPDATE SET
+    password_hash = EXCLUDED.password_hash,
+    name = EXCLUDED.name,
+    role = EXCLUDED.role;
 
 -- 2. DEMO AI SYSTEMS (3 Distinct Systems as required by prompt)
 -- System 1: Demo Customer Support AI

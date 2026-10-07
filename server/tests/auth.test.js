@@ -56,4 +56,79 @@ describe('Phase 1: Crypto & Authentication Tests', () => {
     const riskProfiles = await db.riskProfiles.find();
     assert.strictEqual(riskProfiles.length >= 3, true);
   });
+
+  test('Demo user password verification with intended demo password Demo123!@#', async () => {
+    const user = await db.users.findOne((u) => u.email === 'demo@trustguard.ai');
+    assert.ok(user, 'Demo user must exist in database');
+    const valid = await comparePassword('Demo123!@#', user.password_hash);
+    assert.strictEqual(valid, true, 'bcrypt.compare() must succeed with intended Demo123!@# password');
+  });
+
+  test('POST /api/auth/login succeeds with demo credentials', async () => {
+    const { login } = await import('../src/controllers/authController.js');
+    let responseData = null;
+    let responseStatus = 200;
+    const req = {
+      body: {
+        email: 'demo@trustguard.ai',
+        password: 'Demo123!@#',
+      },
+    };
+    const res = {
+      json: (data) => { responseData = data; },
+      status: (code) => { responseStatus = code; return res; },
+    };
+    await login(req, res, () => {});
+    assert.ok(responseData, 'Response data must be returned');
+    assert.strictEqual(responseData.message, 'Authentication successful');
+    assert.ok(responseData.token, 'Valid JWT token must be returned');
+    assert.strictEqual(responseData.user.email, 'demo@trustguard.ai');
+    assert.strictEqual(responseData.user.role, 'admin');
+
+    const decoded = verifyToken(responseData.token);
+    assert.strictEqual(decoded.email, 'demo@trustguard.ai');
+  });
+
+  test('POST /api/auth/login succeeds with 1-click isDemo request', async () => {
+    const { login } = await import('../src/controllers/authController.js');
+    let responseData = null;
+    let responseStatus = 200;
+    const req = {
+      body: {
+        isDemo: true,
+        email: 'demo@trustguard.ai',
+      },
+    };
+    const res = {
+      json: (data) => { responseData = data; },
+      status: (code) => { responseStatus = code; return res; },
+    };
+    await login(req, res, () => {});
+    assert.ok(responseData, 'Response data must be returned');
+    assert.strictEqual(responseData.message, 'Authentication successful');
+    assert.ok(responseData.token, 'Valid JWT token must be returned');
+    assert.strictEqual(responseData.user.email, 'demo@trustguard.ai');
+
+    const decoded = verifyToken(responseData.token);
+    assert.strictEqual(decoded.email, 'demo@trustguard.ai');
+  });
+
+  test('POST /api/auth/login rejects incorrect password with 401', async () => {
+    const { login } = await import('../src/controllers/authController.js');
+    let responseData = null;
+    let responseStatus = 200;
+    const req = {
+      body: {
+        email: 'demo@trustguard.ai',
+        password: 'WrongPassword!',
+      },
+    };
+    const res = {
+      json: (data) => { responseData = data; },
+      status: (code) => { responseStatus = code; return res; },
+    };
+    await login(req, res, () => {});
+    assert.strictEqual(responseStatus, 401);
+    assert.strictEqual(responseData.message, 'Incorrect email or password');
+  });
 });

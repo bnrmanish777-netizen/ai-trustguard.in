@@ -32,7 +32,7 @@ export const Login = () => {
       await loginAsDemo();
       navigate('/dashboard');
     } catch (err) {
-      setError('Demo login failed. Please verify server status.');
+      setError(err.response?.data?.message || 'Demo login failed. Please verify server status.');
     } finally {
       setLoading(false);
     }
@@ -59,7 +59,8 @@ export const Login = () => {
             type="button"
             onClick={handleDemoLogin}
             disabled={loading}
-            className="w-full py-2.5 px-3 rounded-lg font-mono font-bold text-xs bg-cyan-500 hover:bg-cyan-400 text-black shadow-md shadow-cyan-500/20 transition-all flex items-center justify-center gap-2"
+            id="btn-demo-login"
+            className="w-full py-2.5 px-3 rounded-lg font-mono font-bold text-xs bg-cyan-500 hover:bg-cyan-400 text-black shadow-md shadow-cyan-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
           >
             <span>Launch with Demo SecOps Account</span>
             <ArrowRight className="w-3.5 h-3.5" />
@@ -70,6 +71,24 @@ export const Login = () => {
         <div className="relative flex items-center justify-center">
           <div className="border-t border-slate-800 w-full" />
           <span className="bg-[#0f172a] px-2 text-[10px] font-mono text-slate-500 uppercase">Or log in with credentials</span>
+        </div>
+
+        {/* Demo Credentials Helper */}
+        <div className="p-2.5 rounded-lg bg-slate-900/60 border border-slate-800 text-[11px] font-mono text-slate-400 space-y-1">
+          <div className="text-slate-300 font-semibold flex items-center justify-between">
+            <span>Demo SecOps Credentials:</span>
+            <button
+              type="button"
+              onClick={() => { setEmail('demo@trustguard.ai'); setPassword('Demo123!@#'); }}
+              className="text-cyan-400 hover:text-cyan-300 hover:underline text-[10px] cursor-pointer"
+            >
+              Auto-fill
+            </button>
+          </div>
+          <div className="flex items-center justify-between text-[10px] text-slate-400">
+            <span>Email: <span className="text-cyan-300">demo@trustguard.ai</span></span>
+            <span>Pass: <span className="text-cyan-300">Demo123!@#</span></span>
+          </div>
         </div>
 
         {error && (

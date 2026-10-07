@@ -39,7 +39,13 @@ export const AuthProvider = ({ children }) => {
   };
 
   const loginAsDemo = async () => {
-    return await login('demo@trustguard.ai', 'Demo123!@#');
+    const res = await api.post('/auth/login', { isDemo: true, email: 'demo@trustguard.ai' });
+    const { token: jwtToken, user: userData } = res.data;
+    setToken(jwtToken);
+    setUser(userData);
+    localStorage.setItem('trustguard_token', jwtToken);
+    localStorage.setItem('trustguard_user', JSON.stringify(userData));
+    return userData;
   };
 
   const register = async (name, email, password) => {

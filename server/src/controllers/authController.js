@@ -2,6 +2,7 @@ import { db } from '../db/index.js';
 import { hashPassword, comparePassword, generateToken } from '../utils/crypto.js';
 import { registerSchema, loginSchema, forgotPasswordSchema, resetPasswordSchema } from '../validators/authValidator.js';
 import { logger } from '../utils/logger.js';
+import { env } from '../config/env.js';
 
 export const register = async (req, res, next) => {
   try {
@@ -46,7 +47,12 @@ export const login = async (req, res, next) => {
   try {
     const validated = loginSchema.parse(req.body);
 
-    const user = await db.users.findOne((u) => u.email.toLowerCase() === validated.email.toLowerCase());
+    const isDemo = Boolean(validated.isDemo);
+    const email = (isDemo ? (validated.email || 'demo@trustguard.ai') : validated.email).toLowerCase();
+    const demoPassword = env.DEMO_PASSWORD || 'Demo123!@#';
+    const passwordToVerify = isDemo ? (validated.password || demoPassword) : validated.password;
+
+    const user = await db.users.findOne((u) => u.email.toLowerCase() === email);
     if (!user) {
       return res.status(401).json({
         error: 'Invalid credentials',
@@ -54,7 +60,7 @@ export const login = async (req, res, next) => {
       });
     }
 
-    const isValid = await comparePassword(validated.password, user.password_hash);
+    const isValid = await comparePassword(passwordToVerify, user.password_hash);
     if (!isValid) {
       return res.status(401).json({
         error: 'Invalid credentials',
@@ -64,7 +70,7 @@ export const login = async (req, res, next) => {
 
     const token = generateToken({ id: user.id, email: user.email, role: user.role });
 
-    logger.info('User logged in successfully', { userId: user.id, email: user.email });
+    logger.info('User logged in successfully', { userId: user.id, email: user.email, isDemo });
 
     res.json({
       message: 'Authentication successful',
