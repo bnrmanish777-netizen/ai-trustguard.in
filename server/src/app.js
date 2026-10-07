@@ -1,0 +1,73 @@
+import express from 'express';
+import helmet from 'helmet';
+import cors from 'cors';
+import { env } from './config/env.js';
+import { requestLogger } from './middleware/requestLogger.js';
+import { errorHandler } from './middleware/errorHandler.js';
+import { standardLimiter } from './middleware/rateLimiter.js';
+
+// Route imports
+import authRoutes from './routes/authRoutes.js';
+import aiSystemRoutes from './routes/aiSystemRoutes.js';
+import evaluationRoutes from './routes/evaluationRoutes.js';
+import testRoutes from './routes/testRoutes.js';
+import vulnerabilityRoutes from './routes/vulnerabilityRoutes.js';
+import firewallRoutes from './routes/firewallRoutes.js';
+import playgroundRoutes from './routes/playgroundRoutes.js';
+import reportRoutes from './routes/reportRoutes.js';
+import feedbackRoutes from './routes/feedbackRoutes.js';
+import dashboardRoutes from './routes/dashboardRoutes.js';
+import gatewayRoutes from './routes/gatewayRoutes.js';
+import incidentRoutes from './routes/incidentRoutes.js';
+import monitoringRoutes from './routes/monitoringRoutes.js';
+
+const app = express();
+
+// Security headers with Helmet
+app.use(helmet());
+
+// CORS configuration (Section 85: never origin: * in production)
+app.use(cors({
+  origin: env.NODE_ENV === 'production' ? env.FRONTEND_URL : true,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+
+// Request parsing & size limits (Section 70)
+app.use(express.json({ limit: '2mb' }));
+app.use(express.urlencoded({ extended: true, limit: '2mb' }));
+
+// Request logging & general rate limiting
+app.use(requestLogger);
+app.use(standardLimiter);
+
+// Health check (Section 79)
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    service: 'AI TrustGuard',
+    environment: env.NODE_ENV,
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// Mount All API Routes (Section 69)
+app.use('/api/auth', authRoutes);
+app.use('/api/ai-systems', aiSystemRoutes);
+app.use('/api/evaluations', evaluationRoutes);
+app.use('/api/tests', testRoutes);
+app.use('/api/vulnerabilities', vulnerabilityRoutes);
+app.use('/api/firewall', firewallRoutes);
+app.use('/api/gateway', gatewayRoutes);
+app.use('/api/incidents', incidentRoutes);
+app.use('/api/monitoring', monitoringRoutes);
+app.use('/api/playground', playgroundRoutes);
+app.use('/api/reports', reportRoutes);
+app.use('/api/feedback', feedbackRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+
+// Centralized error handler
+app.use(errorHandler);
+
+export default app;
