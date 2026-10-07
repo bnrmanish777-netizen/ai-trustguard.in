@@ -11,6 +11,7 @@ import {
   Sparkles,
   Bot,
   AlertTriangle,
+  ShieldAlert,
   CheckCircle2,
   Lock,
   ArrowRight,
@@ -203,11 +204,10 @@ export const Playground = () => {
             </div>
 
             {/* Through Firewall Toggle */}
-            <div className={`p-3.5 rounded-lg border transition-all flex items-center justify-between ${
-              throughFirewall
+            <div className={`p-3.5 rounded-lg border transition-all flex items-center justify-between ${throughFirewall
                 ? 'bg-cyan-950/40 border-cyan-500/50'
                 : 'bg-slate-950 border-slate-800'
-            }`}>
+              }`}>
               <div className="space-y-0.5">
                 <span className="font-bold text-white flex items-center gap-1.5">
                   <Flame className={`w-3.5 h-3.5 ${throughFirewall ? 'text-cyan-400' : 'text-slate-500'}`} />
@@ -272,13 +272,12 @@ export const Playground = () => {
                     <Shield className="w-3.5 h-3.5 text-cyan-400" />
                     <span>1. Request Firewall (Input Scanner)</span>
                   </span>
-                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${
-                    result.inputAnalysis?.decision === 'block'
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${result.inputAnalysis?.decision === 'block'
                       ? 'bg-rose-950/60 text-rose-300 border-rose-500/40'
                       : result.inputAnalysis?.decision === 'redact'
-                      ? 'bg-amber-950/60 text-amber-300 border-amber-500/40'
-                      : 'bg-emerald-950/60 text-emerald-300 border-emerald-500/40'
-                  }`}>
+                        ? 'bg-amber-950/60 text-amber-300 border-amber-500/40'
+                        : 'bg-emerald-950/60 text-emerald-300 border-emerald-500/40'
+                    }`}>
                     Decision: {result.inputAnalysis?.decision}
                   </span>
                 </div>
@@ -312,13 +311,12 @@ export const Playground = () => {
                   <span className="text-slate-400 font-semibold uppercase">2. User Received Response:</span>
                   <span className="text-slate-400">{result.latencyMs} ms</span>
                 </div>
-                <div className={`p-3.5 rounded-xl border break-words ${
-                  result.wasBlocked
+                <div className={`p-3.5 rounded-xl border break-words ${result.wasBlocked
                     ? 'bg-rose-950/20 border-rose-500/40 text-rose-300 font-bold'
                     : result.wasRedacted
-                    ? 'bg-amber-950/20 border-amber-500/40 text-amber-200'
-                    : 'bg-slate-950 border-slate-800 text-slate-200'
-                }`}>
+                      ? 'bg-amber-950/20 border-amber-500/40 text-amber-200'
+                      : 'bg-slate-950 border-slate-800 text-slate-200'
+                  }`}>
                   {result.protectedResponse}
                 </div>
               </div>
@@ -330,13 +328,12 @@ export const Playground = () => {
                     <Lock className="w-3.5 h-3.5 text-cyan-400" />
                     <span>3. Response Firewall (Output Scanner)</span>
                   </span>
-                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${
-                    result.wasRedacted
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${result.wasRedacted
                       ? 'bg-amber-950/60 text-amber-300 border-amber-500/40'
                       : result.wasBlocked
-                      ? 'bg-rose-950/60 text-rose-300 border-rose-500/40'
-                      : 'bg-emerald-950/60 text-emerald-300 border-emerald-500/40'
-                  }`}>
+                        ? 'bg-rose-950/60 text-rose-300 border-rose-500/40'
+                        : 'bg-emerald-950/60 text-emerald-300 border-emerald-500/40'
+                    }`}>
                     {result.wasRedacted ? 'REDACTED' : result.wasBlocked ? 'BLOCKED' : 'CLEAN'}
                   </span>
                 </div>
